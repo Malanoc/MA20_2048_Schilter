@@ -7,7 +7,7 @@ import tkinter as tk
 import  DisplayParam as dp
 
 # =========================================================
-# 1. Création de la fenêtre principale
+# 1. Fenêtre principale
 # =========================================================
 
 window = tk.Tk()
@@ -21,23 +21,22 @@ window.configure(bg=dp.BACKGROUND_COLOR_GAME)
 # 2. Variables mémoire du jeu
 # =========================================================
 
-# État logique du jeu (0 = case vide)
+# Grille logique (0 = vide)
 game = [
-    [0, 0, 0, 0],
-    [0, 0, 2, 0],
-    [0, 0, 0, 0],
-    [2, 0, 0, 0]
+    [2, 4, 8, 16],
+    [32, 64, 128, 256],
+    [512, 1024, 2048, 4096],
+    [8192, 0, 0, 0]
 ]
 
-# Score du joueur
 score = 0
 
 
 # =========================================================
-# 3. Interface utilisateur (haut de l'écran)
+# 3. Interface supérieure (titre, score, bouton)
 # =========================================================
 
-# Titre
+# Titre du jeu
 label_title = tk.Label(
     window,
     text="2048",
@@ -53,7 +52,7 @@ label_score_title = tk.Label(
     font=("Arial", 14),
     bg=dp.BACKGROUND_COLOR_GAME
 )
-label_score_title.place(x=520, y=120)
+label_score_title.place(x=540, y=120)
 
 # Affichage du score
 label_score = tk.Label(
@@ -65,13 +64,8 @@ label_score = tk.Label(
 )
 label_score.place(x=520, y=145)
 
-
-# =========================================================
-# 4. Bouton Nouveau jeu
-# =========================================================
-
+# Bouton nouveau jeu
 def new_game():
-    """Réinitialise le jeu"""
     global game, score
     score = 0
     label_score.config(text=str(score))
@@ -79,17 +73,16 @@ def new_game():
     game = [[0] * dp.GRID_LEN for _ in range(dp.GRID_LEN)]
     update_grid()
 
-
 btn_new = tk.Button(
     window,
     text="Nouveau",
     command=new_game
 )
-btn_new.place(x=520, y=190)
+btn_new.place(x=535, y=190)
 
 
 # =========================================================
-# 5. Fond de la grille
+# 4. Fond de la grille
 # =========================================================
 
 frame_grille_bg = tk.Frame(
@@ -102,8 +95,13 @@ frame_grille_bg.place(x=334, y=245)
 
 
 # =========================================================
-# 6. Création des cellules graphiques (labels)
+# 5. Structures graphiques miroir
 # =========================================================
+
+cell_frames = [
+    [None for _ in range(dp.GRID_LEN)]
+    for _ in range(dp.GRID_LEN)
+]
 
 cell_labels = [
     [None for _ in range(dp.GRID_LEN)]
@@ -112,9 +110,14 @@ cell_labels = [
 
 cell_size = dp.SIZE // dp.GRID_LEN
 
+
+# =========================================================
+# 6. Création des cellules
+# =========================================================
+
 for i in range(dp.GRID_LEN):
     for j in range(dp.GRID_LEN):
-        # Frame de la cellule
+        # Tuile (Frame coloré)
         cell_frame = tk.Frame(
             frame_grille_bg,
             bg=dp.BACKGROUND_COLOR_CELL_EMPTY,
@@ -129,64 +132,53 @@ for i in range(dp.GRID_LEN):
         )
         cell_frame.grid_propagate(False)
 
-        # Label de la tuile (texte)
+        # Texte de la tuile
         label = tk.Label(
             cell_frame,
             text="",
-            bg=dp.BACKGROUND_COLOR_CELL_EMPTY,
+            font=dp.FONT,
             fg="#000000",
-            font=dp.FONT
+            bg=dp.BACKGROUND_COLOR_CELL_EMPTY
         )
         label.place(relx=0.5, rely=0.5, anchor="center")
 
+        cell_frames[i][j] = cell_frame
         cell_labels[i][j] = label
 
 
 # =========================================================
-# 7. Fonction de synchronisation logique → affichage
+# 7. Synchronisation logique → affichage
 # =========================================================
 
 def update_grid():
-    """Met à jour l'affichage à partir de la variable game"""
+    #Met à jour l'affichage selon la variable game
     for i in range(dp.GRID_LEN):
         for j in range(dp.GRID_LEN):
             value = game[i][j]
+            frame = cell_frames[i][j]
             label = cell_labels[i][j]
 
             if value == 0:
+                frame.config(bg=dp.BACKGROUND_COLOR_CELL_EMPTY)
                 label.config(
                     text="",
                     bg=dp.BACKGROUND_COLOR_CELL_EMPTY
                 )
             else:
+                color_bg = dp.BACKGROUND_COLOR_DICT[value]
+                color_fg = dp.CELL_COLOR_DICT[value]
+
+                frame.config(bg=color_bg)
                 label.config(
                     text=str(value),
-                    bg=dp.BACKGROUND_COLOR_DICT[value],
-                    fg=dp.CELL_COLOR_DICT[value]
+                    fg=color_fg,
+                    bg=color_bg
                 )
 
 
 # =========================================================
-# 8. États de test
+# 8. Affichage initial
 # =========================================================
-
-# Décommente UN SEUL bloc à la fois pour tester
-
-# --- État initial ---
-# game = [
-#     [0, 0, 0, 0],
-#     [0, 0, 2, 0],
-#     [0, 0, 0, 0],
-#     [2, 0, 0, 0]
-# ]
-
-# --- Toutes les tuiles ---
-game = [
-    [2, 4, 8, 16],
-    [32, 64, 128, 256],
-    [512, 1024, 2048, 4096],
-    [8192, 0, 0, 0]
-]
 
 update_grid()
 

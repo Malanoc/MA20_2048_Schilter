@@ -42,7 +42,7 @@ CELL_COLOR_DICT = {
 8192: "#000000",
 }
 
-FONT = ("Arial",48,"bold")
+FONT = ("Arial",40,"bold")
 
 
 KEY_UP = "Up"
