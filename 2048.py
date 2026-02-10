@@ -202,7 +202,7 @@ update_grid()
 
 
 # =========================================================
-# 7. Boucle principale
+# 7. Boucle principale de la fenêtre tkinter
 # =========================================================
 
 window.mainloop()
