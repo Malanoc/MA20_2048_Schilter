@@ -113,39 +113,37 @@ frame_grille_bg.place(x=334, y=245)
 
 
 # =========================================================
-# 4. Création des cellules (frames + labels)
+# 4. Création des cellules uniquement avec des labels
 # =========================================================
 
-cell_frames = []
 cell_labels = []
-
-for i in range(dp.GRID_LEN):
-    cell_frames.append([])
-    cell_labels.append([])
 
 cell_size = dp.SIZE // dp.GRID_LEN
 
 for x in range(dp.GRID_LEN):
+
+    cell_labels.append([])
+
     for y in range(dp.GRID_LEN):
 
-        cell_frame = tk.Frame(
-            frame_grille_bg,
-            width=cell_size,
-            height=cell_size,
-            bg=dp.BACKGROUND_COLOR_CELL_EMPTY
-        )
-        cell_frame.grid(row=x, column=y, padx=dp.GRID_PADDING, pady=dp.GRID_PADDING)
+        pos_x = y * cell_size + dp.GRID_PADDING
+        pos_y = x * cell_size + dp.GRID_PADDING
 
         cell_label = tk.Label(
-            cell_frame,
+            frame_grille_bg,
             text="",
             font=dp.FONT,
             fg="#000000",
             bg=dp.BACKGROUND_COLOR_CELL_EMPTY
         )
-        cell_label.place(x=62, y=62,anchor="center")
 
-        cell_frames[x].append(cell_frame)
+        cell_label.place(
+            x=pos_x,
+            y=pos_y,
+            width=cell_size - 2*dp.GRID_PADDING,
+            height=cell_size - 2*dp.GRID_PADDING
+        )
+
         cell_labels[x].append(cell_label)
 
 
@@ -157,18 +155,19 @@ for x in range(dp.GRID_LEN):
 def update_grid():
     for x in range(dp.GRID_LEN):
         for y in range(dp.GRID_LEN):
+
             value = game[x][y]
-            frame = cell_frames[x][y]
             label = cell_labels[x][y]
 
             if value == 0:
-                frame.config(bg=dp.BACKGROUND_COLOR_CELL_EMPTY)
+
                 label.config(
                     text="",
                     bg=dp.BACKGROUND_COLOR_CELL_EMPTY
                 )
+
             else:
-                frame.config(bg=dp.BACKGROUND_COLOR_DICT[value])
+
                 label.config(
                     text=str(value),
                     fg=dp.CELL_COLOR_DICT[value],
@@ -204,5 +203,35 @@ update_grid()
 # =========================================================
 # 7. Boucle principale de la fenêtre tkinter
 # =========================================================
+
+
+
+def pack4(a,b,c,d):
+    if c==0:
+        c,d= d,0
+    if b == 0:
+        b, c, d = c, d, 0
+    if a==0:
+       a,b,c,d=b,c,d,0
+    if a==b:
+        a,b,c,d=a*2,c,d,0
+    if b==c:
+        b,c,d=b*2,d,0
+    if c==d:
+        c,d=c*2,0
+    return (a,b,c,d)
+
+print(pack4(0,0,0,2))
+print(pack4(0,0,2,2))
+print(pack4(2,0,2,2))
+print(pack4(2,2,2,2))
+print(pack4(2,2,4,0))
+
+a= input("")
+b= input("")
+c= input("")
+d= input("")
+
+print(pack4(int(a),int(b),int(c),int(d)))
 
 window.mainloop()
