@@ -26,26 +26,12 @@ BACKGROUND_COLOR_DICT = {
 8192: "#CE2727",
 }
 
-CELL_COLOR_DICT = {
-2: "#000000",
-4: "#000000",
-8: "#000000",
-16:"#000000",
-32: "#000000",
-64: "#000000",
-128: "#000000",
-256: "#000000",
-512: "#000000",
-1024: "#000000",
-2048: "#000000",
-4096: "#000000",
-8192: "#000000",
-}
+CELL_COLOR_FG = "#000000"
 
 FONT = ("Arial",40,"bold")
 
 
-KEY_UP = "Up"
-KEY_DOWN = "Down"
-KEY_LEFT = "Left"
-KEY_RIGHT = "Right"
+KEY_UP = "Up" or "w" or "W"
+KEY_DOWN = "Down" or "s" or "S"
+KEY_LEFT = "Left" or "a" or "A"
+KEY_RIGHT = "Right" or "d" or "D"

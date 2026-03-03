@@ -18,6 +18,7 @@ window.geometry("1168x990")
 window.resizable(False, False)
 window.configure(bg=dp.BACKGROUND_COLOR_GAME)
 
+
 # =========================================================
 # 2. Interface haut de l'écran
 # =========================================================
@@ -111,72 +112,126 @@ frame_grille_bg = tk.Frame(
 )
 frame_grille_bg.place(x=334, y=245)
 
-
 # =========================================================
-# 4. Création des cellules uniquement avec des labels
+# 4. Création des cellules
 # =========================================================
+label_grid = [[None, None, None, None],[None, None, None, None],[None, None, None, None],[None, None, None, None]]
 
-cell_labels = []
+for row in range(dp.GRID_LEN):
+    for col in range(dp.GRID_LEN):
 
-cell_size = dp.SIZE // dp.GRID_LEN
-
-for x in range(dp.GRID_LEN):
-
-    cell_labels.append([])
-
-    for y in range(dp.GRID_LEN):
-
-        pos_x = y * cell_size + dp.GRID_PADDING
-        pos_y = x * cell_size + dp.GRID_PADDING
-
-        cell_label = tk.Label(
+        label_grid[row][col] = tk.Label(
             frame_grille_bg,
-            text="",
+            width=4,
+            height=2,
+            borderwidth=1,
+            relief="solid",
             font=dp.FONT,
-            fg="#000000",
             bg=dp.BACKGROUND_COLOR_CELL_EMPTY
         )
 
-        cell_label.place(
-            x=pos_x,
-            y=pos_y,
-            width=cell_size - 2*dp.GRID_PADDING,
-            height=cell_size - 2*dp.GRID_PADDING
+        label_grid[row][col].grid(
+            row=row,
+            column=col,
+            padx=dp.GRID_PADDING,
+            pady=dp.GRID_PADDING
         )
 
-        cell_labels[x].append(cell_label)
+# =========================================================
+# 5. logique de mouvement
+# =========================================================
 
+def pack4(a,b,c,d):
+    global moves  #détecte le nombre de mouvements effectués pour faire le pack
+    if c==0 and d!=0:
+        moves += 1
+        c,d= d,0
+    if b == 0 and c!=0:
+        moves += 1
+        b, c, d = c, d, 0
+    if a==0 and b!=0:
+       moves += 1
+       a,b,c,d=b,c,d,0
+    if a==b and a!=0 and b!=0:
+       moves += 1
+       a,b,c,d=a*2,c,d,0
+    if b==c and b!=0 and c!=0:
+        moves += 1
+        b,c,d=b*2,d,0
+    if c==d and c!=0 and d!=0:
+        moves += 1
+        c,d=c*2,0
+    return (a,b,c,d)
 
+def move_left():
+    for row in range(dp.GRID_LEN):
+        game[row][0],game[row][1],game[row][2],game[row][3] = pack4(game[row][0], game[row][1], game[row][2], game[row][3])
+    print(moves)
+    update_grid()
+def move_right():
+    for row in range(dp.GRID_LEN):
+        game[row][3],game[row][2],game[row][1],game[row][0] = pack4(game[row][3], game[row][2], game[row][1], game[row][0])
+    print(moves)
+    update_grid()
+def move_up():
+    for col in range(dp.GRID_LEN):
+        game[0][col],game[1][col],game[2][col],game[3][col] = pack4(game[0][col], game[1][col], game[2][col], game[3][col])
+    print(moves)
+    update_grid()
+def move_down():
+    for col in range(dp.GRID_LEN):
+        game[3][col],game[2][col],game[1][col],game[0][col] = pack4(game[3][col], game[2][col], game[1][col], game[0][col])
+    print(moves)
+    update_grid()
+
+def key_press(event):
+    key= event.keysym
+    global moves
+    moves=0
+    print(moves)
+    if key == dp.KEY_UP:
+        print("up")
+        move_up()
+    elif key == dp.KEY_DOWN:
+        print("down")
+        move_down()
+    elif key == dp.KEY_LEFT:
+        print("left")
+        move_left()
+    elif key == dp.KEY_RIGHT:
+        print("right")
+        move_right()
+
+window.bind('<Key>', key_press)
 
 # =========================================================
-# 5. Affichage de la tuile en fonction de sa valeur
+# 6. Affichage de la tuile en fonction de sa valeur
 # =========================================================
 
 def update_grid():
-    for x in range(dp.GRID_LEN):
-        for y in range(dp.GRID_LEN):
 
-            value = game[x][y]
-            label = cell_labels[x][y]
+    for row in range(dp.GRID_LEN):
+        for col in range(dp.GRID_LEN):
+
+            value = game[row][col]
 
             if value == 0:
 
-                label.config(
+                label_grid[row][col].configure(
                     text="",
                     bg=dp.BACKGROUND_COLOR_CELL_EMPTY
                 )
 
             else:
 
-                label.config(
-                    text=str(value),
-                    fg=dp.CELL_COLOR_DICT[value],
-                    bg=dp.BACKGROUND_COLOR_DICT[value]
+                label_grid[row][col].configure(
+                    text=value,
+                    bg=dp.BACKGROUND_COLOR_DICT[value],
+                    fg=dp.CELL_COLOR_FG
                 )
 
-
 # =========================================================
-# 6. États de test
+# 7. États de test
 # =========================================================
 
 # Décommentez un seul bloc à la fois pour tester
@@ -190,48 +245,41 @@ def update_grid():
 #]
 
 # --- Toutes les tuiles ---
+#game = [
+#    [2, 4, 8, 16],
+#    [32, 64, 128, 256],
+#    [512, 1024, 2048, 4096],
+#    [8192, 0, 0, 0]
+#]
+# --- Tuiles à combiner ---
 game = [
-    [2, 4, 8, 16],
-    [32, 64, 128, 256],
-    [512, 1024, 2048, 4096],
-    [8192, 0, 0, 0]
+    [2, 2, 4, 4],
+    [4, 0, 4, 0],
+    [4, 4, 2, 0],
+    [2, 4, 0, 2]
 ]
+
+
+
 
 update_grid()
 
+# Tests pour la fonction pack4
+#print(pack4(0,0,0,2))
+#print(pack4(0,0,2,2))
+#print(pack4(2,0,2,2))
+#print(pack4(2,2,2,2))
+#print(pack4(2,2,4,0))
+#print ("donnez moi 4 chiffres pour tester la fonction pack4")
+#a= input("")
+#b= input("")
+#c= input("")
+#d= input("")
+
+#print(pack4(int(a),int(b),int(c),int(d)))
+
 
 # =========================================================
-# 7. Boucle principale de la fenêtre tkinter
+# 8. Boucle principale de la fenêtre tkinter
 # =========================================================
-
-
-
-def pack4(a,b,c,d):
-    if c==0:
-        c,d= d,0
-    if b == 0:
-        b, c, d = c, d, 0
-    if a==0:
-       a,b,c,d=b,c,d,0
-    if a==b:
-        a,b,c,d=a*2,c,d,0
-    if b==c:
-        b,c,d=b*2,d,0
-    if c==d:
-        c,d=c*2,0
-    return (a,b,c,d)
-
-print(pack4(0,0,0,2))
-print(pack4(0,0,2,2))
-print(pack4(2,0,2,2))
-print(pack4(2,2,2,2))
-print(pack4(2,2,4,0))
-
-a= input("")
-b= input("")
-c= input("")
-d= input("")
-
-print(pack4(int(a),int(b),int(c),int(d)))
-
 window.mainloop()
