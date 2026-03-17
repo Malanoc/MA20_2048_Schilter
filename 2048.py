@@ -254,6 +254,7 @@ window.bind('<Key>', key_press)
 # Fonction qui ajoute la valeur de la tuile créée lors d'une fusion au score
 def score_up():
     global score, score_add
+    # Ajoute score_add au score total et met à jour l'affichage du score
     score += score_add
     label_score.config(text=str(score))  # Met à jour l'affichage du score
 
