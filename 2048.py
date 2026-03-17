@@ -4,9 +4,9 @@
 # Description: Ce projet est une implémentation du jeu 2048 en Python.
 # Le but du jeu est de faire glisser les tuiles sur une grille pour combiner les tuiles de même valeur et atteindre la tuile 2048.
 # ================================================================================================================================
-
+from tkinter import messagebox
 import tkinter as tk
-import  DisplayParam as dp
+import DisplayParam as dp
 import random
 
 # =========================================================
@@ -51,6 +51,7 @@ label_score_title = tk.Label(
 label_score_title.place(x=740, y=105)
 
 score=0
+score_add = 0
 
 label_score = tk.Label(
     window,
@@ -81,7 +82,7 @@ label_top = tk.Label(
     width=6
 )
 label_top.place(x=840, y=145)
-
+won = False
 def new_game():
     global game, score, moves
     #réinitialise le score à 0 et met à jour l'affichage du score
@@ -155,7 +156,7 @@ for row in range(dp.GRID_LEN):
 # =========================================================
 
 def pack4(a,b,c,d):
-    global moves  # détecte le nombre de mouvements effectués pendant le déplacement
+    global moves, score_add # détecte le nombre de mouvements effectués pendant le déplacement
 
     # Si la 3ème case est vide mais la 4ème contient une valeur, alors on déplace la valeur de d vers c
     if c==0 and d!=0:
@@ -173,46 +174,66 @@ def pack4(a,b,c,d):
     if a==b and a!=0 and b!=0:
        moves += 1
        a,b,c,d=a*2,c,d,0
+       score_add += a # ajoute la valeur de la tuile créée lors de la fusion a score_add
     # Si les cases 2 et 3 ont la même valeur (et ne sont pas vides), alors elles fusionnent
     if b==c and b!=0 and c!=0:
         moves += 1
         b,c,d=b*2,d,0
+        score_add += b # ajoute la valeur de la tuile créée lors de la fusion a score_add
     # Si les cases 3 et 4 ont la même valeur (et ne sont pas vides), alors elles fusionnent
     if c==d and c!=0 and d!=0:
         moves += 1
         c,d=c*2,0
+        score_add += c # ajoute la valeur de la tuile créée lors de la fusion a score_add
     return (a,b,c,d)
 
 def move_left():
     for row in range(dp.GRID_LEN):
         game[row][0],game[row][1],game[row][2],game[row][3] = pack4(game[row][0], game[row][1], game[row][2], game[row][3])
     print(moves)    #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
+    # Génération de la prochaine tuile et mise à jour de l'affichage de la grille et du score
     tile_generator()
     update_grid()
+    score_up()
+    # Tests de fin de jeu
+    check_end_game()
 def move_right():
     for row in range(dp.GRID_LEN):
         game[row][3],game[row][2],game[row][1],game[row][0] = pack4(game[row][3], game[row][2], game[row][1], game[row][0])
     print(moves)    #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
+    # Génération de la prochaine tuile et mise à jour de l'affichage de la grille et du score
     tile_generator()
     update_grid()
+    score_up()
+    # Tests de fin de jeu
+    check_end_game()
 def move_up():
     for col in range(dp.GRID_LEN):
         game[0][col],game[1][col],game[2][col],game[3][col] = pack4(game[0][col], game[1][col], game[2][col], game[3][col])
     print(moves)    #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
+    # Génération de la prochaine tuile et mise à jour de l'affichage de la grille et du score
     tile_generator()
     update_grid()
+    score_up()
+    # Tests de fin de jeu
+    check_end_game()
 def move_down():
     for col in range(dp.GRID_LEN):
         game[3][col],game[2][col],game[1][col],game[0][col] = pack4(game[3][col], game[2][col], game[1][col], game[0][col])
-    print(moves)    #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
+    print(moves) #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
+    # Génération de la prochaine tuile et mise à jour de l'affichage de la grille et du score
     tile_generator()
     update_grid()
+    score_up()
+    # Tests de fin de jeu
+    check_end_game()
 
 def key_press(event):
     key= event.keysym
-    global moves
+    global moves, score_add
     #moves est remis à 0 à chaque fois qu'une touche est pressée pour compter le nombre de mouvements effectués lors du pack
     moves=0
+    score_add=0
     print(moves)
     if key == dp.KEY_UP:
         print("up")
@@ -228,6 +249,13 @@ def key_press(event):
         move_right()
 
 window.bind('<Key>', key_press)
+
+
+# Fonction qui ajoute la valeur de la tuile créée lors d'une fusion au score
+def score_up():
+    global score, score_add
+    score += score_add
+    label_score.config(text=str(score))  # Met à jour l'affichage du score
 
 # =========================================================
 # 6. Affichage de la tuile en fonction de sa valeur
@@ -302,9 +330,6 @@ game=[
 #    [2, 4, 0, 2]
 #]
 
-
-
-
 update_grid()
 
 # Tests pour la fonction pack4
@@ -320,9 +345,58 @@ update_grid()
 #d= input("")
 
 #print(pack4(int(a),int(b),int(c),int(d)))
+# =========================================================
+# 8. Vérification de la victoire ou de la défaite
+# =========================================================
+
+# Fonction pour vérifier si le joueur a gagné (atteint la tuile 2048)
+def check_win():
+    global won
+    for row in range(dp.GRID_LEN):
+        for col in range(dp.GRID_LEN):
+            if game[row][col] == 2048 and won == False:
+                won = True
+                return True
+    return False
+# Fonction pour vérifier s'il n'y a plus de mouvement possible (game over)
+def check_game_over():
+    for row in range(dp.GRID_LEN):
+        for col in range(dp.GRID_LEN):
+            # Vérifie si une tuile est à 0.
+            if game[row][col] == 0:
+                return False
+            # Vérifie si deux tuiles adjacentes sont identiques (horizontalement et verticalement), ce qui permettrait une fusion.
+            if col < dp.GRID_LEN - 1 and game[row][col] == game[row][col + 1]:
+                return False
+            if row < dp.GRID_LEN - 1 and game[row][col] == game[row + 1][col]:
+                return False
+    return True
+
+
+# Fonction qui affiche le message de victoire et propose de continuer la partie ou de défaite et propose de recommencer une partie, ou de quitter le jeu.
+def check_end_game():
+    # Si check win() retourne True, cela signifie que le joueur a atteint la tuile 2048 et a gagné la partie.
+    # Un message de victoire s'affiche avec une option pour continuer à jouer ou quitter le jeu.
+    if check_win() :
+        response = messagebox.askyesno("Victoire", "Félicitations, vous avez gagné ! Voulez-vous continuer à jouer ?")
+        if not response:
+            window.destroy()
+    # Si check_game_over() retourne True, cela signifie que le joueur n'a plus de mouvements possibles et a perdu la partie.
+    # Un message de défaite s'affiche avec une option pour recommencer une partie ou quitter le jeu.
+    elif check_game_over():
+        response = messagebox.askyesno("Game Over", "Désolé, vous avez perdu ! Voulez-vous recommencer une partie ?")
+        if response:
+            new_game()
+        else:
+            window.destroy()
+
+
+
+
 
 
 # =========================================================
-# 8. Boucle principale de la fenêtre tkinter
+# 9. Boucle principale de la fenêtre tkinter
+# =========================================================
 new_game()
 window.mainloop()
