@@ -19,7 +19,6 @@ window.geometry("1168x990")
 window.resizable(False, False)
 window.configure(bg=dp.BACKGROUND_COLOR_GAME)
 
-
 # =========================================================
 # 2. Interface haut de l'écran
 # =========================================================
@@ -51,7 +50,7 @@ label_score_title = tk.Label(
 label_score_title.place(x=740, y=105)
 
 score=0
-score_add = 0
+
 
 label_score = tk.Label(
     window,
@@ -82,12 +81,21 @@ label_top = tk.Label(
     width=6
 )
 label_top.place(x=840, y=145)
+
 won = False
 def new_game():
     global game, score, moves
     #réinitialise le score à 0 et met à jour l'affichage du score
     score = 0
     label_score.config(text=str(score))
+    #vérifie le top score dans top_score.txt et le charge dans la variable top pour l'afficher
+    global top
+    try:
+        with open("top_score.txt", "r") as file:
+            top = int(file.read())
+    except FileNotFoundError:
+        top = 0
+    label_top.config(text=str(top))
 
     #Génère une nouvelle grille de jeu avec des tuiles vides (0) et place deux tuiles de départ (2 ou 4) dans des cases aléatoires.
     #la fonction new_game appelle une fonction tile_generator qui génère une nouvelle tuile dans une case vide de la grille.
@@ -102,7 +110,6 @@ def new_game():
     tile_generator()
     update_grid()
 
-
 btn_new = tk.Button(
     window,
     text="Nouveau",
@@ -112,7 +119,6 @@ btn_new = tk.Button(
     height=2,
 )
 btn_new.place(x=830, y=190)
-
 
 # =========================================================
 # 3. Fond de la grille
@@ -156,8 +162,9 @@ for row in range(dp.GRID_LEN):
 # =========================================================
 
 def pack4(a,b,c,d):
-    global moves, score_add # détecte le nombre de mouvements effectués pendant le déplacement
-
+    global score
+    score_add=0 # détecte le nombre de mouvements effectués pendant le déplacement
+    moves = 0
     # Si la 3ème case est vide mais la 4ème contient une valeur, alors on déplace la valeur de d vers c
     if c==0 and d!=0:
         moves += 1
@@ -185,55 +192,67 @@ def pack4(a,b,c,d):
         moves += 1
         c,d=c*2,0
         score_add += c # ajoute la valeur de la tuile créée lors de la fusion a score_add
-    return (a,b,c,d)
+    score += score_add
+    return (a,b,c,d, moves)
 
 def move_left():
+    tot_moves=0
     for row in range(dp.GRID_LEN):
-        game[row][0],game[row][1],game[row][2],game[row][3] = pack4(game[row][0], game[row][1], game[row][2], game[row][3])
-    print(moves)    #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
+        game[row][0],game[row][1],game[row][2],game[row][3], moves = pack4(game[row][0], game[row][1], game[row][2], game[row][3])
+        tot_moves += moves
+    print(tot_moves)    #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
     # Génération de la prochaine tuile et mise à jour de l'affichage de la grille et du score
-    tile_generator()
+    if tot_moves>0:
+        tile_generator()
     update_grid()
-    score_up()
+    top_up()
     # Tests de fin de jeu
     check_end_game()
 def move_right():
+    tot_moves =0
     for row in range(dp.GRID_LEN):
-        game[row][3],game[row][2],game[row][1],game[row][0] = pack4(game[row][3], game[row][2], game[row][1], game[row][0])
-    print(moves)    #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
+        game[row][3],game[row][2],game[row][1],game[row][0],moves = pack4(game[row][3], game[row][2], game[row][1], game[row][0])
+        tot_moves += moves
+    print(tot_moves)    #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
     # Génération de la prochaine tuile et mise à jour de l'affichage de la grille et du score
-    tile_generator()
+    if tot_moves > 0:
+        tile_generator()
     update_grid()
-    score_up()
+    top_up()
     # Tests de fin de jeu
     check_end_game()
 def move_up():
+    tot_moves=0
     for col in range(dp.GRID_LEN):
-        game[0][col],game[1][col],game[2][col],game[3][col] = pack4(game[0][col], game[1][col], game[2][col], game[3][col])
-    print(moves)    #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
+        game[0][col],game[1][col],game[2][col],game[3][col],moves = pack4(game[0][col], game[1][col], game[2][col], game[3][col])
+        tot_moves += moves
+    print(tot_moves)    #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
     # Génération de la prochaine tuile et mise à jour de l'affichage de la grille et du score
-    tile_generator()
+    if tot_moves > 0:
+        tile_generator()
     update_grid()
-    score_up()
+    top_up()
     # Tests de fin de jeu
     check_end_game()
 def move_down():
+    tot_moves=0
     for col in range(dp.GRID_LEN):
-        game[3][col],game[2][col],game[1][col],game[0][col] = pack4(game[3][col], game[2][col], game[1][col], game[0][col])
-    print(moves) #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
+        game[3][col],game[2][col],game[1][col],game[0][col],moves = pack4(game[3][col], game[2][col], game[1][col], game[0][col])
+        tot_moves += moves
+    print(tot_moves) #permet de vérifier le nombre de mouvements effectués pour faire le pack dans la console afin de s'assurer qu'il est correct.
     # Génération de la prochaine tuile et mise à jour de l'affichage de la grille et du score
-    tile_generator()
+    if tot_moves > 0:
+        tile_generator()
     update_grid()
-    score_up()
+    top_up()
     # Tests de fin de jeu
     check_end_game()
 
 def key_press(event):
     key= event.keysym
-    global moves, score_add
+    global moves
     #moves est remis à 0 à chaque fois qu'une touche est pressée pour compter le nombre de mouvements effectués lors du pack
     moves=0
-    score_add=0
     print(moves)
     if key == dp.KEY_UP:
         print("up")
@@ -252,31 +271,34 @@ window.bind('<Key>', key_press)
 
 
 # Fonction qui ajoute la valeur de la tuile créée lors d'une fusion au score
-def score_up():
-    global score, score_add
-    # Ajoute score_add au score total et met à jour l'affichage du score
-    score += score_add
-    label_score.config(text=str(score))  # Met à jour l'affichage du score
+def top_up():
+# Fonction qui stocke le top score dans la variable top et l'écrit dans un fichier texte "top_score.txt" pour qu'il soit conservé même après la fermeture du jeu
+    global top
+    if score > top:
+        top = score
+        label_top.config(text=str(top))  # Met à jour l'affichage du top score
+        with open("top_score.txt", "w") as file:
+            file.write(str(top))
 
 # =========================================================
 # 6. Affichage de la tuile en fonction de sa valeur
 # =========================================================
 def tile_generator():
     # Cette fonction génère une nouvelle tuile (2 ou 4) dans une case vide de la grille après chaque mouvement.
-    if moves !=0:   # la tuile ne se génère que si un mouvement a été effectué (moves>0)
-        #La fonction vérifie d'abord s'il y a des cases vides dans la grille. Si c'est le cas, elle crée une liste de toutes les cases vides.
-        empty_cells = []
-        for row in range(dp.GRID_LEN):
-            for col in range(dp.GRID_LEN):
-                if game[row][col] == 0:
-                    empty_cells.append((row, col))
+    #La fonction vérifie d'abord s'il y a des cases vides dans la grille. Si c'est le cas, elle crée une liste de toutes les cases vides.
+    empty_cells = []
+    for row in range(dp.GRID_LEN):
+        for col in range(dp.GRID_LEN):
+            if game[row][col] == 0:
+                empty_cells.append((row, col))
     # Si oui, elle choisit une case vide au hasard et y place une tuile avec une valeur de 2 ou 4 (80% de chances pour 2 et 20% pour 4).
-        if empty_cells:
-            row, col = random.choice(empty_cells)
-            game[row][col] = 2 if random.random() < 0.8 else 4
+    if empty_cells:
+        row, col = random.choice(empty_cells)
+        game[row][col] = 2 if random.random() < 0.8 else 4
 
 
 def update_grid():
+    label_score.config(text=str(score))  # Met à jour l'affichage du score
     for row in range(dp.GRID_LEN):
         for col in range(dp.GRID_LEN):
 
@@ -304,8 +326,6 @@ def update_grid():
 # Décommentez un seul bloc à la fois pour tester
 
 # --- État initial ---
-
-
 game=[
         [0, 0, 0, 0],
         [0, 0, 0, 0],
@@ -313,39 +333,7 @@ game=[
         [0, 0, 0, 0]
     ]
 
-
-
-
-# --- Toutes les tuiles ---
-#game = [
-#    [2, 4, 8, 16],
-#    [32, 64, 128, 256],
-#    [512, 1024, 2048, 4096],
-#    [8192, 0, 0, 0]
-#]
-# --- Tuiles à combiner pour test ---
-#game = [
-#    [2, 2, 4, 4],
-#    [4, 0, 4, 0],
-#    [4, 4, 2, 0],
-#    [2, 4, 0, 2]
-#]
-
 update_grid()
-
-# Tests pour la fonction pack4
-#print(pack4(0,0,0,2))
-#print(pack4(0,0,2,2))
-#print(pack4(2,0,2,2))
-#print(pack4(2,2,2,2))
-#print(pack4(2,2,4,0))
-#print ("donnez moi 4 chiffres pour tester la fonction pack4")
-#a= input("")
-#b= input("")
-#c= input("")
-#d= input("")
-
-#print(pack4(int(a),int(b),int(c),int(d)))
 # =========================================================
 # 8. Vérification de la victoire ou de la défaite
 # =========================================================
@@ -390,11 +378,6 @@ def check_end_game():
             new_game()
         else:
             window.destroy()
-
-
-
-
-
 
 # =========================================================
 # 9. Boucle principale de la fenêtre tkinter
