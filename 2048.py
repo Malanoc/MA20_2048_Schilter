@@ -51,7 +51,6 @@ label_score_title.place(x=740, y=105)
 
 score=0
 
-
 label_score = tk.Label(
     window,
     text=str(score),
@@ -110,6 +109,7 @@ def new_game():
     tile_generator()
     update_grid()
 
+
 btn_new = tk.Button(
     window,
     text="Nouveau",
@@ -120,6 +120,70 @@ btn_new = tk.Button(
 )
 btn_new.place(x=830, y=190)
 
+# Fonction pour stocker l'état actuel du jeu dans un fichier texte "saved_game.txt" pour pouvoir le charger plus tard
+def save_game():
+    with open("saved_game.txt", "w") as file:
+        for row in game:
+            file.write(",".join(map(str, row)) + "\n")
+        file.write(str(score) + "\n")
+
+# Fonction pour charger "saved_game.txt". Si le fichier existe, il lit l'état du jeu, le score, et met à jour l'affichage en conséquence.
+# Si le fichier n'existe pas, il affiche un message d'erreur.
+def load_game():
+    try:
+        with open("saved_game.txt", "r") as file:
+            lines = file.readlines()
+            for i in range(dp.GRID_LEN):
+                game[i] = list(map(int, lines[i].strip().split(",")))
+            global score
+            score = int(lines[dp.GRID_LEN].strip())
+            update_grid()
+    except FileNotFoundError:
+        messagebox.showerror("Erreur", "Aucune partie sauvegardée trouvée.")
+
+btn_save = tk.Button(
+    window,
+    text="Sauvegarder",
+    command=save_game,
+    bg=dp.BACKGROUND_COLOR_GAME,
+    width=12,
+    height=2,
+)
+btn_save.place(x=600, y=120)
+
+btn_load = tk.Button(
+    window,
+    text="Charger",
+    command=load_game,
+    bg=dp.BACKGROUND_COLOR_GAME,
+    width=12,
+    height=2,
+)
+btn_load.place(x=500, y=120)
+
+
+# Fonction pour proposer une sauvegarde lorsqu'on tente de fermer la fenêtre. Si l'utilisateur choisit de sauvegarder, la fonction saved_game() est appelée avant de fermer la fenêtre.
+# S'il choisit de ne pas sauvegarder, la fenêtre se ferme. S'il annule il peut continuer à jouer sans fermer la fenêtre.
+def on_closing():
+    response = messagebox.askyesnocancel(
+        "Quitter",
+        "Voulez-vous sauvegarder avant de quitter ?"
+    )
+
+    if response is True:
+        # Oui → sauvegarder puis quitter
+        save_game()
+        window.destroy()
+
+    elif response is False:
+        # Non → quitter sans sauvegarder
+        window.destroy()
+
+    else:
+        # Annuler → ne rien faire
+        pass
+
+window.protocol("WM_DELETE_WINDOW", on_closing)
 # =========================================================
 # 3. Fond de la grille
 # =========================================================
@@ -193,7 +257,7 @@ def pack4(a,b,c,d):
         c,d=c*2,0
         score_add += c # ajoute la valeur de la tuile créée lors de la fusion a score_add
     score += score_add
-    return (a,b,c,d, moves)
+    return a,b,c,d, moves
 
 def move_left():
     tot_moves=0
@@ -268,7 +332,6 @@ def key_press(event):
         move_right()
 
 window.bind('<Key>', key_press)
-
 
 # Fonction qui ajoute la valeur de la tuile créée lors d'une fusion au score
 def top_up():
