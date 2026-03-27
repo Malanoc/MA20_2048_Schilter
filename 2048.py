@@ -137,6 +137,10 @@ def load_game():
                 game[i] = list(map(int, lines[i].strip().split(",")))
             global score
             score = int(lines[dp.GRID_LEN].strip())
+            # Vérification si le 2048 a déja été atteint dans la partie sauvegardée et adapte la variable won en conséquence pour que le message de victoire ne
+            # s'affiche pas immédiatement après le chargement de la partie si le 2048 a déjà été atteint ou est atteint à nouveau durant la reprise du jeu.
+            global won
+            won = check_win()
             update_grid()
     except FileNotFoundError:
         messagebox.showerror("Erreur", "Aucune partie sauvegardée trouvée.")
